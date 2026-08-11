@@ -8,14 +8,14 @@ export const Route = createFileRoute("/posts/$postId")({
     return {
       meta: [
         { title: `${title} | Sustainable Growth & Marketing Engineering` },
-        { name: "description", content: loaderData?.excerpt ?? "" },
+        { name: "description", content: post?.excerpt ?? "" },
         { property: "og:title", content: title },
-        { property: "og:description", content: loaderData?.excerpt ?? "" },
+        { property: "og:description", content: post?.excerpt ?? "" },
         { property: "og:type", content: "article" },
-        ...(loaderData?.featured_image
+        ...(post?.featured_image
           ? [
-              { property: "og:image", content: loaderData.featured_image },
-              { name: "twitter:image", content: loaderData.featured_image },
+              { property: "og:image", content: post.featured_image },
+              { name: "twitter:image", content: post.featured_image },
             ]
           : []),
         { name: "twitter:card", content: "summary_large_image" },
