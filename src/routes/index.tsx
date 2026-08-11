@@ -84,10 +84,9 @@ function Index() {
 function PostCard({ post }: { post: WpPost }) {
   const hasImage = Boolean(post.featured_image);
   return (
-    <a
-      href={post.URL}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      to="/posts/$postId"
+      params={{ postId: String(post.ID) }}
       className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="aspect-[16/10] w-full overflow-hidden bg-stone-100">
