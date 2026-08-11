@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { fetchPost, type WpPostFull } from "@/lib/wordpress.functions";
 
 export const Route = createFileRoute("/posts/$postId")({
-  head: ({ loaderData }) => {
+  head: ({ loaderData }: { loaderData?: WpPostFull }) => {
     const title = loaderData?.title ?? "مقال";
     return {
       meta: [
