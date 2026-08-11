@@ -15,6 +15,13 @@ export type WpPost = {
   author?: { name?: string };
 };
 
+export type WpPostFull = WpPost & {
+  content: string;
+  modified?: string;
+  tags?: Record<string, { name?: string }>;
+  categories?: Record<string, { name?: string }>;
+};
+
 const fetchPosts = createServerFn({ method: "GET" })
   .inputValidator((data) =>
     z
