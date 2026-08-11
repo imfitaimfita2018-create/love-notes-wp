@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async () => await fetchPosts({ number: 12 }),
+  loader: async () => fetchPosts.handler({ data: { number: 12 } }),
   component: Index,
 });
 
