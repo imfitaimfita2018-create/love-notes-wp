@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
 
 export const Route = createFileRoute("/")({
