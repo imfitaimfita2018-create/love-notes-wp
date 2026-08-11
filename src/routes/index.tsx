@@ -39,15 +39,33 @@ function formatDate(iso: string) {
   }
 }
 
+type SortKey = "newest" | "oldest" | "popular";
+
+function engagement(p: WpPost) {
+  return (p.like_count ?? 0) + (p.discussion?.comment_count ?? 0);
+}
+
 function Index() {
   const { posts }: { posts: WpPost[] } = Route.useLoaderData();
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortKey>("newest");
+
+  const hasEngagement = useMemo(
+    () => posts.some((p) => engagement(p) > 0),
+    [posts],
+  );
 
   const filteredPosts = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return posts;
-    return posts.filter((p) => p.title.toLowerCase().includes(q));
-  }, [posts, query]);
+    const list = q
+      ? posts.filter((p) => p.title.toLowerCase().includes(q))
+      : [...posts];
+    return list.sort((a, b) => {
+      if (sort === "popular") return engagement(b) - engagement(a);
+      const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+      return sort === "oldest" ? diff : -diff;
+    });
+  }, [posts, query, sort]);
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-stone-900" dir="rtl">
@@ -87,6 +105,34 @@ function Index() {
                 className="w-full rounded-full border border-stone-300 bg-white py-3 pr-12 pl-4 text-base text-stone-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
               />
             </div>
+          </div>
+
+          <div
+            className="mt-5 flex flex-wrap items-center justify-center gap-2"
+            role="group"
+            aria-label="ترتيب المقالات"
+          >
+            {([
+              { key: "newest", label: "الأحدث" },
+              { key: "oldest", label: "الأقدم" },
+              ...(hasEngagement
+                ? [{ key: "popular", label: "الأعلى تفاعلاً" }]
+                : []),
+            ] as { key: SortKey; label: string }[]).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setSort(opt.key)}
+                aria-pressed={sort === opt.key}
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                  sort === opt.key
+                    ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                    : "border-stone-300 bg-white text-stone-600 hover:border-emerald-400 hover:text-emerald-700"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
