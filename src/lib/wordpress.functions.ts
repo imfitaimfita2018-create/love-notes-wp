@@ -13,6 +13,8 @@ export type WpPost = {
   excerpt: string;
   featured_image: string;
   author?: { name?: string };
+  like_count?: number;
+  discussion?: { comment_count?: number };
 };
 
 export type WpPostFull = WpPost & {
@@ -40,7 +42,7 @@ const fetchPosts = createServerFn({ method: "GET" })
     url.searchParams.set("number", String(number));
     url.searchParams.set(
       "fields",
-      "ID,title,date,URL,excerpt,featured_image,author",
+      "ID,title,date,URL,excerpt,featured_image,author,like_count,discussion",
     );
 
     const response = await fetch(url.toString(), {
