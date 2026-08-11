@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
 
 export const Route = createFileRoute("/")({
@@ -40,6 +41,13 @@ function formatDate(iso: string) {
 
 function Index() {
   const { posts }: { posts: WpPost[] } = Route.useLoaderData();
+  const [query, setQuery] = useState("");
+
+  const filteredPosts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return posts;
+    return posts.filter((p) => p.title.toLowerCase().includes(q));
+  }, [posts, query]);
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-stone-900" dir="rtl">
@@ -54,17 +62,47 @@ function Index() {
           <p className="mx-auto mt-3 max-w-xl text-base text-stone-500">
             مقالات وإرشادات حول النمو المستدام وهندسة التسويق.
           </p>
+
+          <div className="mx-auto mt-6 max-w-md">
+            <div className="relative">
+              <svg
+                className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ابحث عن مقال بالعنوان..."
+                aria-label="بحث عن مقال"
+                className="w-full rounded-full border border-stone-300 bg-white py-3 pr-12 pl-4 text-base text-stone-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+              />
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-12">
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="rounded-2xl border border-stone-200 bg-white p-12 text-center">
-            <p className="text-stone-500">لا توجد مقالات منشورة بعد.</p>
+            <p className="text-stone-500">
+              {query.trim()
+                ? "لا توجد مقالات تطابق بحثك."
+                : "لا توجد مقالات منشورة بعد."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <PostCard key={post.ID} post={post} />
             ))}
           </div>
