@@ -133,6 +133,6 @@ function PostCard({ post }: { post: WpPost }) {
           <time dateTime={post.date}>{formatDate(post.date)}</time>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
