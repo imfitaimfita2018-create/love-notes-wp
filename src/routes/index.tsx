@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { useMemo } from "react";
 import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
 
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  sort: fallback(z.string(), "newest").default("newest"),
+});
+
 export const Route = createFileRoute("/")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       {
@@ -47,8 +55,19 @@ function engagement(p: WpPost) {
 
 function Index() {
   const { posts }: { posts: WpPost[] } = Route.useLoaderData();
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortKey>("newest");
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const query = search.q;
+  const sort: SortKey = (["newest", "oldest", "popular"] as const).includes(
+    search.sort as SortKey,
+  )
+    ? (search.sort as SortKey)
+    : "newest";
+
+  const setQuery = (value: string) =>
+    navigate({ search: (prev) => ({ ...prev, q: value }), replace: true });
+  const setSort = (value: SortKey) =>
+    navigate({ search: (prev) => ({ ...prev, sort: value }) });
 
   const hasEngagement = useMemo(
     () => posts.some((p) => engagement(p) > 0),
