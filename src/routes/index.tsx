@@ -65,9 +65,9 @@ function Index() {
     : "newest";
 
   const setQuery = (value: string) =>
-    navigate({ search: (prev) => ({ ...prev, q: value }), replace: true });
+    navigate({ search: { q: value, sort: search.sort }, replace: true });
   const setSort = (value: SortKey) =>
-    navigate({ search: (prev) => ({ ...prev, sort: value }) });
+    navigate({ search: { q: search.q, sort: value } });
 
   const hasEngagement = useMemo(
     () => posts.some((p) => engagement(p) > 0),
