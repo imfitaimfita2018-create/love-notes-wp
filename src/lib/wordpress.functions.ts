@@ -67,4 +67,37 @@ const fetchPosts = createServerFn({ method: "GET" })
     return { posts: json.posts ?? [], found: json.found ?? 0 };
   });
 
-export { fetchPosts };
+const fetchPost = createServerFn({ method: "GET" })
+  .inputValidator((data) =>
+    z.object({ id: z.number().int().positive() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const LOVABLE_API_KEY = process.env["LOVABLE_API_KEY"];
+    const WORDPRESS_COM_API_KEY = process.env["WORDPRESS_COM_API_KEY"];
+    if (!LOVABLE_API_KEY || !WORDPRESS_COM_API_KEY) {
+      throw new Error("WordPress.com connection is not configured.");
+    }
+
+    const url = `${GATEWAY_URL}/rest/v1.1/sites/${SITE}/posts/${data.id}`;
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": WORDPRESS_COM_API_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(
+        `WordPress gateway request failed [${response.status}]: ${errorBody}`,
+      );
+      throw new Error(
+        `WordPress request failed [${response.status}]: ${errorBody}`,
+      );
+    }
+
+    return (await response.json()) as WpPostFull;
+  });
+
+export { fetchPosts, fetchPost };
