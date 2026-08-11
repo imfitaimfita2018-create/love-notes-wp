@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
 
 export const Route = createFileRoute("/")({
