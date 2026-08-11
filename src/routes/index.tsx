@@ -40,7 +40,7 @@ function formatDate(iso: string) {
 }
 
 function Index() {
-  const { posts } = Route.useLoaderData();
+  const { posts }: { posts: WpPost[] } = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-stone-900" dir="rtl">
