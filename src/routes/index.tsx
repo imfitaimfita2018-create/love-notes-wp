@@ -67,15 +67,16 @@ function Index() {
     ? (search.sort as SortKey)
     : "newest";
 
+  type Search = z.infer<typeof searchSchema>;
   const setQuery = (value: string) =>
     navigate({
-      search: (prev) => ({ ...prev, q: value, page: 1 }),
+      search: (prev: Search) => ({ ...prev, q: value, page: 1 }),
       replace: true,
     });
   const setSort = (value: SortKey) =>
-    navigate({ search: (prev) => ({ ...prev, sort: value, page: 1 }) });
+    navigate({ search: (prev: Search) => ({ ...prev, sort: value, page: 1 }) });
   const setPage = (value: number) =>
-    navigate({ search: (prev) => ({ ...prev, page: value }) });
+    navigate({ search: (prev: Search) => ({ ...prev, page: value }) });
 
   const hasEngagement = useMemo(
     () => posts.some((p) => engagement(p) > 0),
