@@ -7,6 +7,7 @@ import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   sort: fallback(z.string(), "newest").default("newest"),
+  page: fallback(z.number().int(), 1).default(1),
 });
 
 export const Route = createFileRoute("/")({
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async () => fetchPosts({ data: { number: 12 } }),
+  loader: async () => fetchPosts({ data: { number: 50 } }),
   component: Index,
 });
 
@@ -53,6 +54,8 @@ function engagement(p: WpPost) {
   return (p.like_count ?? 0) + (p.discussion?.comment_count ?? 0);
 }
 
+const PAGE_SIZE = 9;
+
 function Index() {
   const { posts }: { posts: WpPost[] } = Route.useLoaderData();
   const search = Route.useSearch();
@@ -65,9 +68,14 @@ function Index() {
     : "newest";
 
   const setQuery = (value: string) =>
-    navigate({ search: { q: value, sort: search.sort }, replace: true });
+    navigate({
+      search: (prev) => ({ ...prev, q: value, page: 1 }),
+      replace: true,
+    });
   const setSort = (value: SortKey) =>
-    navigate({ search: { q: search.q, sort: value } });
+    navigate({ search: (prev) => ({ ...prev, sort: value, page: 1 }) });
+  const setPage = (value: number) =>
+    navigate({ search: (prev) => ({ ...prev, page: value }) });
 
   const hasEngagement = useMemo(
     () => posts.some((p) => engagement(p) > 0),
@@ -85,6 +93,13 @@ function Index() {
       return sort === "oldest" ? diff : -diff;
     });
   }, [posts, query, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, search.page), totalPages);
+  const pagedPosts = filteredPosts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-stone-900" dir="rtl">
@@ -166,11 +181,52 @@ function Index() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPosts.map((post) => (
-              <PostCard key={post.ID} post={post} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {pagedPosts.map((post) => (
+                <PostCard key={post.ID} post={post} />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <nav
+                className="mt-12 flex flex-wrap items-center justify-center gap-2"
+                aria-label="ترقيم الصفحات"
+              >
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-medium text-stone-600 transition hover:border-emerald-400 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  السابق
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={`min-w-9 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                      p === currentPage
+                        ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                        : "border-stone-300 bg-white text-stone-600 hover:border-emerald-400 hover:text-emerald-700"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-medium text-stone-600 transition hover:border-emerald-400 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  التالي
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </main>
 
