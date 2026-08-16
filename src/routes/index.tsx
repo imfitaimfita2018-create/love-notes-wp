@@ -270,7 +270,7 @@ function PostCard({ post }: { post: WpPost }) {
         </h2>
 
         {post.excerpt && (
-          <p
+          <div
             className="mt-2 line-clamp-3 text-sm text-stone-500"
             dangerouslySetInnerHTML={{ __html: post.excerpt }}
           />
