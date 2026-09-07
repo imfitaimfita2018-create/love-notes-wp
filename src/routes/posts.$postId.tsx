@@ -55,12 +55,12 @@ function PostDetail() {
     .filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] text-stone-900" dir="rtl">
-      <header className="border-b border-stone-200 bg-white/70 backdrop-blur-sm">
+    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <header className="border-b border-border bg-surface-elevated/70 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl px-6 py-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-800"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gold transition-colors hover:text-gold/80"
           >
             <svg
               className="h-4 w-4"
@@ -85,29 +85,29 @@ function PostDetail() {
           {cats.map((c) => (
             <span
               key={c}
-              className="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
+              className="rounded-full bg-accent px-3 py-1 font-medium text-accent-foreground"
             >
               {c}
             </span>
           ))}
         </div>
 
-        <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-stone-900 sm:text-4xl">
+        <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
           {post.title}
         </h1>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-stone-500">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {post.author?.name && (
-            <span className="font-medium text-stone-700">
+            <span className="font-medium text-foreground">
               {post.author.name}
             </span>
           )}
-          <span className="text-stone-300">•</span>
+          <span className="text-border">•</span>
           <time dateTime={post.date}>{formatDate(post.date)}</time>
         </div>
 
         {hasImage && (
-          <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+          <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
             <img
               src={post.featured_image}
               alt={post.title}
@@ -117,18 +117,18 @@ function PostDetail() {
         )}
 
         <div
-          className="mt-8 prose prose-stone max-w-none prose-headings:font-bold prose-headings:text-stone-900 prose-a:text-emerald-700 prose-img:rounded-xl prose-img:shadow-sm"
+          className="mt-8 prose prose-invert max-w-none prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-gold prose-strong:text-foreground prose-img:rounded-xl prose-img:shadow-sm"
           dir="rtl"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
         {tags.length > 0 && (
-          <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-stone-200 pt-6">
-            <span className="text-xs font-medium text-stone-400">الوسوم:</span>
+          <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-border pt-6">
+            <span className="text-xs font-medium text-muted-foreground">الوسوم:</span>
             {tags.map((t) => (
               <span
                 key={t}
-                className="rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-600"
+                className="rounded-md bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
               >
                 #{t}
               </span>
@@ -136,12 +136,12 @@ function PostDetail() {
           </div>
         )}
 
-        <div className="mt-10 border-t border-stone-200 pt-6">
+        <div className="mt-10 border-t border-border pt-6">
           <a
             href={post.URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-800"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gold transition-colors hover:text-gold/80"
           >
             عرض المقال الأصلي على WordPress
             <svg
