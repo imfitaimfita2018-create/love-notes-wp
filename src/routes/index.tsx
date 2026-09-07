@@ -2,8 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useMemo } from "react";
-import { fetchPosts, type WpPost } from "@/lib/wordpress.functions";
-
+import { getPosts } from "@/lib/wp";
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   sort: fallback(z.string(), "newest").default("newest"),
@@ -32,10 +31,8 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async () => fetchPosts({ data: { number: 50 } }),
-  component: Index,
+loader: () => getPosts(),
 });
-
 function formatDate(iso: string) {
   try {
     return new Intl.DateTimeFormat("ar", {
