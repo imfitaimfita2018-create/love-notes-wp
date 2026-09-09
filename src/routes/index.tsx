@@ -3,6 +3,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useMemo } from "react";
 import { getPosts } from "@/lib/wp";
+import type { WpPost } from "@/lib/wordpress.functions";
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   sort: fallback(z.string(), "newest").default("newest"),
