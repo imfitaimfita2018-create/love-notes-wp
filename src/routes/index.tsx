@@ -1,296 +1,91 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { z } from "zod";
-import { useMemo } from "react";
-import { getPosts } from "@/lib/wp";
-import type { WpPost } from "@/lib/wordpress.functions";
-const searchSchema = z.object({
-  q: fallback(z.string(), "").default(""),
-  sort: fallback(z.string(), "newest").default("newest"),
-  page: fallback(z.number().int(), 1).default(1),
-});
+import React from "react";
 
-export const Route = createFileRoute("/")({
-  validateSearch: zodValidator(searchSchema),
-  head: () => ({
-    meta: [
-      {
-        title: "أحدث المقالات | Sustainable Growth & Marketing Engineering",
-      },
-      {
-        name: "description",
-        content:
-          "تصفّح أحدث المقالات من مدونة Sustainable Growth & Marketing Engineering Agency.",
-      },
-      { property: "og:title", content: "أحدث المقالات" },
-      {
-        property: "og:description",
-        content:
-          "تصفّح أحدث المقالات من مدونة Sustainable Growth & Marketing Engineering Agency.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-loader: () => getPosts(),
-});
-function formatDate(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("ar", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
-
-type SortKey = "newest" | "oldest" | "popular";
-
-function engagement(p: WpPost) {
-  return (p.like_count ?? 0) + (p.discussion?.comment_count ?? 0);
-}
-
-const PAGE_SIZE = 9;
-
-function Index() {
-  const { posts }: { posts: WpPost[] } = Route.useLoaderData();
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const query = search.q;
-  const sort: SortKey = (["newest", "oldest", "popular"] as const).includes(
-    search.sort as SortKey,
-  )
-    ? (search.sort as SortKey)
-    : "newest";
-
-  type Search = z.infer<typeof searchSchema>;
-  const setQuery = (value: string) =>
-    navigate({
-      search: (prev: Search) => ({ ...prev, q: value, page: 1 }),
-      replace: true,
-    });
-  const setSort = (value: SortKey) =>
-    navigate({ search: (prev: Search) => ({ ...prev, sort: value, page: 1 }) });
-  const setPage = (value: number) =>
-    navigate({ search: (prev: Search) => ({ ...prev, page: value }) });
-
-  const hasEngagement = useMemo(
-    () => posts.some((p) => engagement(p) > 0),
-    [posts],
-  );
-
-  const filteredPosts = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = q
-      ? posts.filter((p) => p.title.toLowerCase().includes(q))
-      : [...posts];
-    return list.sort((a, b) => {
-      if (sort === "popular") return engagement(b) - engagement(a);
-      const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
-      return sort === "oldest" ? diff : -diff;
-    });
-  }, [posts, query, sort]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
-  const currentPage = Math.min(Math.max(1, search.page), totalPages);
-  const pagedPosts = filteredPosts.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
+export default function AgencyLandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
-      <header className="border-b border-border bg-surface-elevated/70 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-6 py-10 text-center">
-          <p className="text-sm font-medium tracking-[0.2em] text-gold uppercase">
-            Sustainable Growth & Marketing Engineering
-          </p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            أحدث المقالات
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
-            مقالات وإرشادات حول النمو المستدام وهندسة التسويق.
-          </p>
-
-          <div className="mx-auto mt-6 max-w-md">
-            <div className="relative group">
-              <svg
-                className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground group-focus-within:text-gold transition-colors"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                />
-              </svg>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث عن مقال بالعنوان..."
-                aria-label="بحث عن مقال"
-                className="w-full rounded-full border border-border bg-input py-3 pr-12 pl-4 text-base text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-gold focus:ring-2 focus:ring-ring"
-              />
-            </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-white" dir="rtl">
+      {/* Header / Navbar */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="text-xl font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Marketing Engineering Agency
           </div>
-
-          <div
-            className="mt-5 flex flex-wrap items-center justify-center gap-2"
-            role="group"
-            aria-label="ترتيب المقالات"
-          >
-            {([
-              { key: "newest", label: "الأحدث" },
-              { key: "oldest", label: "الأقدم" },
-              ...(hasEngagement
-                ? [{ key: "popular", label: "الأعلى تفاعلاً" }]
-                : []),
-            ] as { key: SortKey; label: string }[]).map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setSort(opt.key)}
-                aria-pressed={sort === opt.key}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                  sort === opt.key
-                    ? "border-gold bg-gold text-gold-foreground shadow-gold/20 shadow-sm"
-                    : "border-border bg-secondary text-muted-foreground hover:border-gold hover:text-gold"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <nav className="hidden md:flex space-x-reverse space-x-8 text-sm font-medium text-slate-300">
+            <a href="#services" className="hover:text-emerald-400 transition">الخدمات الهندسية</a>
+            <a href="#analytics" className="hover:text-emerald-400 transition">تحليلات البيانات</a>
+            <a href="#about" className="hover:text-emerald-400 transition">منهجيتنا</a>
+          </nav>
+          <div>
+            <a href="#contact" className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 text-sm">
+              ابدأ مشروعك
+            </a>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        {filteredPosts.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center">
-            <p className="text-muted-foreground">
-              {query.trim()
-                ? "لا توجد مقالات تطابق بحثك."
-                : "لا توجد مقالات منشورة بعد."}
-            </p>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-24 lg:py-32">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_50%)]"></div>
+        <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+          <span className="inline-block bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+            هندسة التسويق المبنية على البيانات والذكاء الاصطناعي
+          </span>
+          <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight mb-8 leading-tight">
+            هندسة النمو المستدام <br />
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+              لشركات المستقبل
+            </span>
+          </h1>
+          <p className="text-lg lg:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+            ندمج استراتيجيات التسويق المتقدمة، تحليلات البيانات الدقيقة عبر GA4 و Looker Studio، والحلول التقنية لنقل عملك إلى أبعاد جديدة من الكفاءة والعائد على الاستثمار.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="#contact" className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-8 py-4 rounded-xl transition shadow-xl shadow-emerald-500/20">
+              طلب تدقيق مجاني لموقعك
+            </a>
+            <a href="#services" className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold px-8 py-4 rounded-xl transition">
+              استكشف خدماتنا الهندسية
+            </a>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {pagedPosts.map((post) => (
-                <PostCard key={post.ID} post={post} />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <nav
-                className="mt-12 flex flex-wrap items-center justify-center gap-2"
-                aria-label="ترقيم الصفحات"
-              >
-                <button
-                  type="button"
-                  onClick={() => setPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="rounded-full border border-border bg-secondary px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  السابق
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPage(p)}
-                    aria-current={p === currentPage ? "page" : undefined}
-                    className={`min-w-9 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-                      p === currentPage
-                        ? "border-gold bg-gold text-gold-foreground shadow-gold/20 shadow-sm"
-                        : "border-border bg-secondary text-muted-foreground hover:border-gold hover:text-gold"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="rounded-full border border-border bg-secondary px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  التالي
-                </button>
-              </nav>
-            )}
-          </>
-        )}
-      </main>
-
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto max-w-6xl px-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Sustainable Growth & Marketing
-          Engineering Agency
         </div>
+      </section>
+
+      {/* Services Section */}
+      <section id="services" className="py-24 bg-slate-900/50 border-t border-slate-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold mb-4">قدراتنا وحلولنا الهندسية</h2>
+            <p className="text-slate-400">نقدم حلولاً متكاملة تدمج الهندسة البرمجية مع دقة التحليلات التسويقية.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xl mb-6">📊</div>
+              <h3 className="text-xl font-bold mb-3">تحليلات GA4 & Looker Studio</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">تصميم وبناء لوحات معلومات تفاعلية ومتابعة دقيقة لمؤشرات الأداء الرئيسية (KPIs).</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xl mb-6">⚡</div>
+              <h3 className="text-xl font-bold mb-3">التدقيق التقني & SEO</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">تحسين سرعة الأداء عبر PageSpeed Insights وضمان أعلى معدلات أرشفة وظهور على محركات البحث.</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xl mb-6">🤖</div>
+              <h3 className="text-xl font-bold mb-3">تطوير مدعوم بالذكاء الاصطناعي</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">بناء صفحات هبوط وتطبيقات ويب سريعة وعالية التحويل باستخدام أحدث الأدوات التقنية.</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xl mb-6">🎯</div>
+              <h3 className="text-xl font-bold mb-3">استراتيجيات B2B وتقسيم العملاء</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">تحليل سلوك العملاء وتجزئة البيانات عبر بايثون وأدوات الذكاء الاصطناعي لضمان نمو مستدام.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer id="contact" className="py-12 border-t border-slate-900 text-center text-slate-500 text-sm">
+        <p>&copy; 2026 Sustainable Growth and Marketing Engineering Agency. جميع الحقوق محفوظة.</p>
       </footer>
     </div>
-  );
-}
-
-function PostCard({ post }: { post: WpPost }) {
-  const hasImage = Boolean(post.featured_image);
-  return (
-    <Link
-      to="/posts/$postId"
-      params={{ postId: String(post.ID) }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/30 hover:shadow-xl"
-    >
-      <div className="aspect-[16/10] w-full overflow-hidden bg-surface-elevated">
-        {hasImage ? (
-          <img
-            src={post.featured_image}
-            alt={post.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-accent/20 via-surface-elevated to-gold-muted">
-            <span className="text-4xl">📝</span>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col p-5">
-        <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-gold">
-          {post.title}
-        </h2>
-
-        {post.excerpt && (
-          <div
-            className="mt-2 line-clamp-3 text-sm text-muted-foreground"
-            dangerouslySetInnerHTML={{ __html: post.excerpt }}
-          />
-        )}
-
-        <div className="mt-auto flex items-center gap-2 pt-4 text-xs text-muted-foreground">
-          <svg
-            className="h-4 w-4 text-gold"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-            />
-          </svg>
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
-        </div>
-      </div>
-    </Link>
   );
 }
